@@ -4,6 +4,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import os
 
 WEBHOOK_URL = os.environ.get("WECHAT_WEBHOOK", "")
@@ -37,14 +39,41 @@ def main():
         print("浏览器启动成功")
         
         driver.get('https://www.doubao.com/chat/')
-        time.sleep(5)
+        print("等待页面加载...")
         
-        input_box = driver.find_element(By.TAG_NAME, 'textarea')
+        # 使用显式等待，最多等15秒，直到输入框可以被点击
+        wait = WebDriverWait(driver, 15)
+        
+        # 尝试多种定位方式来找到输入框
+        input_selectors = [
+            (By.TAG_NAME, 'textarea'),
+            (By.CSS_SELECTOR, '[contenteditable="true"]'),
+            (By.CSS_SELECTOR, '.input-area [role="textbox"]'),
+            (By.CSS_SELECTOR, 'div[class*="input"] div[class*="editor"]')
+        ]
+        
+        input_box = None
+        for by, selector in input_selectors:
+            try:
+                print(f"尝试选择器: {by}={selector}")
+                input_box = wait.until(EC.element_to_be_clickable((by, selector)))
+                print(f"找到输入框，使用选择器: {by}={selector}")
+                break
+            except:
+                continue
+        
+        if not input_box:
+            raise Exception("所有选择器都无法定位输入框")
+        
+        # 输入内容并发送
+        input_box.click()  # 先点击一下确保激活
         input_box.send_keys("报猫眼专业版实时累计想看：")
+        print("消息已输入")
         time.sleep(1)
         input_box.send_keys(Keys.RETURN)
         print("消息已发送")
         
+        # 等待回复
         time.sleep(5)
         
         reply_text = "未获取到回复"
