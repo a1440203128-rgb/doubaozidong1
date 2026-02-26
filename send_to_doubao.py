@@ -22,7 +22,6 @@ def send_to_wechat(content):
 def main():
     print("任务开始执行...")
     with sync_playwright() as p:
-        # 启动浏览器（无头模式）
         browser = p.chromium.launch(headless=True, args=['--no-sandbox', '--disable-dev-shm-usage'])
         page = browser.new_page()
         print("浏览器启动成功")
@@ -30,50 +29,44 @@ def main():
         # 打开豆包
         page.goto('https://www.doubao.com/chat/')
         print("等待页面加载...")
+        page.wait_for_timeout(5000)  # 等待5秒，让页面充分加载
         
-        # 等待输入框出现（最多30秒）
-        # 尝试多种定位方式，Playwright 会自动等待
-        try:
-            # 优先使用 placeholder 定位
-            input_box = page.wait_for_selector('textarea[placeholder="给豆包发送消息"]', timeout=30000)
-        except:
-            try:
-                # 如果没有 placeholder，尝试通用选择器
-                input_box = page.wait_for_selector('textarea, [contenteditable="true"], [role="textbox"]', timeout=30000)
-            except:
-                # 如果还找不到，打印页面源码帮助调试
-                print("页面源码片段：", page.content()[:2000])
-                raise Exception("无法定位输入框")
+        # 打印当前页面标题和URL
+        print("当前页面标题：", page.title())
+        print("当前页面URL：", page.url)
         
-        # 点击输入框并输入内容
-        input_box.click()
-        input_box.fill("报猫眼专业版实时累计想看：")
-        print("消息已输入")
-        time.sleep(1)
-        input_box.press("Enter")
-        print("消息已发送")
+        # 查找所有可能的输入框候选元素
+        candidates = page.query_selector_all('textarea, [contenteditable], [role="textbox"], input, div[class*="input"], div[class*="editor"]')
+        print(f"找到 {len(candidates)} 个候选元素：")
         
-        # 等待回复出现
-        page.wait_for_timeout(5000)
+        for i, el in enumerate(candidates):
+            # 获取元素标签名
+            tag = el.evaluate('el => el.tagName')
+            # 获取常用属性
+            attrs = el.evaluate('''el => ({
+                id: el.id,
+                class: el.className,
+                placeholder: el.placeholder,
+                contenteditable: el.contentEditable,
+                role: el.getAttribute('role'),
+                type: el.getAttribute('type'),
+                'aria-label': el.getAttribute('aria-label'),
+                outerHTML: el.outerHTML.substring(0, 200)  // 截取前200字符避免日志过长
+            })''')
+            print(f"\n--- 候选元素 {i} ---")
+            print(f"标签: {tag}")
+            for key, value in attrs.items():
+                print(f"{key}: {value}")
         
-        # 获取最后一条消息（可能是 AI 回复）
-        messages = page.query_selector_all('.message, [class*="message"]')
-        reply_text = "未获取到回复"
-        if messages:
-            last_msg = messages[-1]
-            reply_text = last_msg.text_content() or "回复内容为空"
+        # 尝试截取整个页面源码（前5000字符）以便分析
+        html_snippet = page.content()[:5000]
+        print("\n页面源码片段（前5000字符）：")
+        print(html_snippet)
         
-        print(f"获取到回复：{reply_text[:100]}...")
-        
-        result_msg = f"""✅ 豆包每日任务执行成功
-
-⏰ 时间：{time.strftime('%Y-%m-%d %H:%M:%S')}
-📝 发送内容：报猫眼专业版实时累计想看：
-💬 豆包回复：{reply_text}"""
-        send_to_wechat(result_msg)
+        # 最后抛出异常，因为我们还在调试阶段
+        raise Exception("调试信息已打印，请根据日志分析正确的定位器")
         
         browser.close()
-        print("浏览器已关闭")
 
 if __name__ == "__main__":
     main()
