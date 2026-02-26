@@ -46,6 +46,7 @@ def main():
         
         # 尝试多种定位方式来找到输入框
         input_selectors = [
+            (By.CSS_SELECTOR, '#root > div > div.chat-input > textarea'),#chat-route-layout > div > main > div > div.-mt-\[var\(--header-height\)\].flex.w-full.flex-grow.flex-col.items-center.px-16 > div.relative.flex.flex-col.w-full.min-h-\[var\(--input-guidance-input-container-min-height\)\].max-h-\[var\(--input-guidance-input-container-max-height\]\).max-w-\[var\(--content-max-width\)\] > div > div.flex.flex-col-reverse > div > div.relative.flex.flex-col.max-h-\(--input-guidance-input-container-max-height\,unset\).rounded-\[inherit\].border-\(--input-guidance-input-container-border\).bg-\(--input-guidance-input-container-background\) > div.relative.flex.flex-col-reverse.justify-between.items-end.gap-14.relative.w-full.flex-1.min-h-0.p-10 > div.w-full.flex.min-h-\(--input-guidance-input-editor-wrapper-min-height\,0\).px-10.pt-6 > div > div.container-kxxSU4.flex-1.w-0.min-w-0.\!border-none.\!bg-transparent.max-h-\[calc\(var\(--input-guidance-input-container-max-height\)-var\(--custom-area-height\,0px\)-36px-16px-14px-10px\)\].textarea-BnKyIt.custom-scrollbar-stmEIo.semi-input-textarea-wrapper > textarea
             (By.TAG_NAME, 'textarea'),
             (By.CSS_SELECTOR, '[contenteditable="true"]'),
             (By.CSS_SELECTOR, '.input-area [role="textbox"]'),
