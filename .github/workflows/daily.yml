@@ -1,0 +1,33 @@
+name: 每日豆包问候
+
+on:
+  schedule:
+    # cron 表达式：分钟 小时 日 月 星期
+    # 下面表示每天北京时间 9:00 运行（UTC 时间 1:00）
+    - cron: '0 1 * * *'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  send-message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+
+      - name: 设置 Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: 安装依赖
+        run: |
+          pip install selenium requests
+          # GitHub 的 Ubuntu runner 默认已经安装了 Chrome 和 ChromeDriver
+          # 如果遇到问题，可以显式安装 ChromeDriver
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver
+
+      - name: 运行发送脚本
+        env:
+          WECHAT_WEBHOOK: ${{ secrets.WECHAT_WEBHOOK }}
+        run: python send_to_doubao.py
