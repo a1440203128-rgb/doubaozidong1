@@ -41,7 +41,7 @@ def main():
         
         input_box = driver.find_element(By.TAG_NAME, 'textarea')
         # 直接把要发送的内容写在下面，用英文双引号括起来
-        input_box.send_keys("报猫眼专业版实时累计想看：")
+       input_box.send_keys("Hello, this is a test message")
         time.sleep(1)
         input_box.send_keys(Keys.RETURN)
         print("消息已发送")
@@ -70,7 +70,7 @@ def main():
         result_msg = f"""✅ 豆包每日任务执行成功
 
 ⏰ 时间：{time.strftime('%Y-%m-%d %H:%M:%S')}
-📝 发送内容：报猫眼专业版实时累计想看：
+📝 发送内容：Hello, this is a test message
 💬 豆包回复：{reply_text}"""
         send_to_wechat(result_msg)
         
