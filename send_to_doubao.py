@@ -7,11 +7,14 @@ from selenium.webdriver.chrome.options import Options
 import os
 
 # ===== 需要你修改的部分 =====
+# 企业微信机器人的 Webhook 地址（通过 GitHub Secrets 传入，无需手动填写）
 WEBHOOK_URL = os.environ.get("WECHAT_WEBHOOK", "")
-MESSAGE = "报猫眼专业版实时累计想看："   # ← 这里已经改好了
+# 你想发送的内容（请使用英文双引号）
+MESSAGE = "报猫眼专业版实时累计想看："
 # ===========================
 
 def send_to_wechat(content):
+    """发送消息到企业微信"""
     if not WEBHOOK_URL:
         print("错误：未设置企业微信 Webhook 地址")
         return
@@ -29,6 +32,7 @@ def main():
     print("任务开始执行...")
     driver = None
     try:
+        # 配置无头浏览器
         chrome_options = Options()
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--no-sandbox')
@@ -36,22 +40,28 @@ def main():
         chrome_options.add_argument('--disable-gpu')
         chrome_options.add_argument('--window-size=1280,720')
         
+        # 启动浏览器（GitHub Actions 环境已预装 Chrome 和 ChromeDriver）
         driver = webdriver.Chrome(options=chrome_options)
         print("浏览器启动成功")
         
+        # 打开豆包
         driver.get('https://www.doubao.com/chat/')
-        time.sleep(5)
+        time.sleep(5)  # 等待页面加载
         
+        # 找到输入框并发送消息
         input_box = driver.find_element(By.TAG_NAME, 'textarea')
         input_box.send_keys(MESSAGE)
         time.sleep(1)
         input_box.send_keys(Keys.RETURN)
         print("消息已发送")
         
+        # 等待回复
         time.sleep(5)
         
+        # 尝试获取豆包的回复
         reply_text = "未获取到回复"
         try:
+            # 尝试多种选择器
             selectors = [
                 '[class*="message"]:last-child',
                 '[class*="chat"]:last-child',
@@ -69,6 +79,7 @@ def main():
         
         print(f"获取到回复：{reply_text[:100]}...")
         
+        # 推送到企业微信
         result_msg = f"""✅ 豆包每日任务执行成功
 
 ⏰ 时间：{time.strftime('%Y-%m-%d %H:%M:%S')}
